@@ -85,6 +85,9 @@ const handleResult = <Input, Output>(
 ):
   | { success: true; data: Output }
   | { success: false; error: ZodError<Input> } => {
+  /*if (ctx?.common?.issues) {
+    console.error(new ZodError(ctx.common.issues));
+  }*/
   if (isValid(result)) {
     return { success: true, data: result.value };
   } else {
@@ -4073,6 +4076,18 @@ export class ZodCatch<T extends ZodTypeAny> extends ZodType<
       path: ctx.path,
       parent: ctx,
     });
+
+    // @ts-ignore
+    if (result?.status !== "valid") {
+      console.warn(
+        `ZodError: Validation for`,
+        ctx?.path,
+        `failed`,
+        ctx?.common?.issues?.slice(-1)?.[0],
+        `catch value returned:`,
+        this._def.defaultValue()
+      );
+    }
 
     if (isAsync(result)) {
       return result.then((result) => {
